@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator</title>
+<script>
+// This code is modified from some Russian-speaking developers\' code. I did not intend to violate any copyright or licensing rules.
+"use strict";
+const defaultActivationKey = "3893-9258-K6XJLE";
+const defaultLicenseType = "803000";
+const defaultSalt = "0xD1CF";
+function genKeyValStr(mathID) {
+	return mathID ? `${ mathID }$${ defaultLicenseType }&${ defaultActivationKey }` : "";
+}
+function testSalt(n, byte, c) {
+	for (let bitIndex = 0; bitIndex <= 7; bitIndex++) {
+		const bit = byte >> bitIndex & 1;
+		n = bit + (n - bit & ~1) === n ? n - bit >> 1 : (c - bit ^ n) >> 1;
+	}
+	return n;
+}
+function genPassword(keyValStr, salt) {
+	salt = parseInt(salt);
+	const uuid = keyValStr.split("").map(x => x.charCodeAt());
+	let salt1 = salt;
+	for (let byteIndex = uuid.length - 1; byteIndex >= 0; byteIndex -= 1) {
+		salt1 = testSalt(salt1, uuid[byteIndex], 67011);
+	}
+	salt1 = salt1 ^ 52959;
+	salt1 = Math.trunc((salt1 + 29434 & 65535) * 99999 / 65535);
+	let offset1 = "0000" + salt1;
+	offset1 = offset1.substring(offset1.length - 5);
+	let salt2 = parseInt(offset1.substring(0, 2) + offset1.substring(3, 5) + offset1.substring(2, 3));
+	salt2 = Math.trunc(salt2 / 99999 * 65535, 10) + 1;
+	salt2 = testSalt(testSalt(0, salt2 & 255, 67147), salt2 >> 8, 67147);
+	for (let i = uuid.length - 1; i >= 0; i -= 1) {
+		salt2 = testSalt(salt2, uuid[i], 67147);
+	}
+	salt2 = salt2 ^ 61218;
+	salt2 = Math.trunc((salt2 & 65535) * 99999 / 65535);
+	let offset2 = "0000" + salt2;
+	offset2 = offset2.substring(offset2.length - 5);
+	const password = `${ offset2[3] }${ offset1[3] }${ offset1[1] }${ offset1[0] }-${ offset2[4] }${ offset1[2] }${ offset2[0] }-${ offset2[2] }${ offset1[4] }${ offset2[1] }`;
+	return defaultLicenseType ? `${ password }::${ defaultLicenseType }` : password;
+}
+function genPass(event) {
+	event.preventDefault();
+	const formEl = document.querySelector("#form");
+	if (formEl.reportValidity && !formEl.reportValidity()) {
+		return;
+	}
+	const mathID = document.querySelector("#mathid").value;
+	const keyValStr = genKeyValStr(mathID);
+	const password = genPassword(keyValStr, defaultSalt);
+	document.querySelector("#output").innerHTML = `Activation Key: ${ defaultActivationKey }<br>Password: ${ password }`;
+}
+</script>
+</head>
+<body>
+    <form id="form" onsubmit="genPass(event)">
+        <label for="mathid">Machine ID:</label>
+        <input type="text" id="mathid" name="mathid" required>
+        <button type="submit">Generate Password</button>
+    </form>
+    <div id="output"></div>
+</body>
+</html>
