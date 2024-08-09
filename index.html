@@ -7,11 +7,8 @@
 <script>
 // This code is modified from some Russian-speaking developers\' code. I did not intend to violate any copyright or licensing rules.
 "use strict";
-const defaultActivationKey = "3893-9258-K6XJLE";
-const defaultLicenseType = "803000";
-const defaultSalt = "0xD1CF";
-function genKeyValStr(mathID) {
-	return mathID ? `${ mathID }$${ defaultLicenseType }&${ defaultActivationKey }` : "";
+function genKeyValStr(mathID, activationKey, licenseType) {
+	return mathID ? `${mathID}$${licenseType}&${activationKey}` : "";
 }
 function testSalt(n, byte, c) {
 	for (let bitIndex = 0; bitIndex <= 7; bitIndex++) {
@@ -20,7 +17,7 @@ function testSalt(n, byte, c) {
 	}
 	return n;
 }
-function genPassword(keyValStr, salt) {
+function genPassword(keyValStr, salt, licenseType) {
 	salt = parseInt(salt);
 	const uuid = keyValStr.split("").map(x => x.charCodeAt());
 	let salt1 = salt;
@@ -42,7 +39,7 @@ function genPassword(keyValStr, salt) {
 	let offset2 = "0000" + salt2;
 	offset2 = offset2.substring(offset2.length - 5);
 	const password = `${ offset2[3] }${ offset1[3] }${ offset1[1] }${ offset1[0] }-${ offset2[4] }${ offset1[2] }${ offset2[0] }-${ offset2[2] }${ offset1[4] }${ offset2[1] }`;
-	return defaultLicenseType ? `${ password }::${ defaultLicenseType }` : password;
+	return `${password}::${licenseType}`;
 }
 function genPass(event) {
 	event.preventDefault();
@@ -51,18 +48,27 @@ function genPass(event) {
 		return;
 	}
 	const mathID = document.querySelector("#mathid").value;
-	const keyValStr = genKeyValStr(mathID);
-	const password = genPassword(keyValStr, defaultSalt);
-	document.querySelector("#output").innerHTML = `Activation Key: ${ defaultActivationKey }<br>Password: ${ password }`;
+	const activationKey = document.querySelector("#activationkey").value;
+	const licenseType = document.querySelector("#licensetype").value;
+	const salt = document.querySelector("#salt").value;
+	const keyValStr = genKeyValStr(mathID, activationKey, licenseType);
+	const password = genPassword(keyValStr, salt, licenseType);
+	document.querySelector("#output").innerHTML = `Activation Key: ${activationKey}<br>Password: ${password}`;
 }
 </script>
 </head>
 <body>
-    <form id="form" onsubmit="genPass(event)">
-        <label for="mathid">Machine ID:</label>
-        <input type="text" id="mathid" name="mathid" required>
-        <button type="submit">Generate Password</button>
-    </form>
-    <div id="output"></div>
+	<form id="form" onsubmit="genPass(event)">
+		<label for="mathid">Machine ID:</label>
+		<input type="text" id="mathid" name="mathid" required><br>
+		<label for="activationkey">Activation Key:</label>
+		<input type="text" id="activationkey" name="activationkey" value="3893-9258-K6XJLE" required><br>
+		<label for="licensetype">License Type:</label>
+		<input type="text" id="licensetype" name="licensetype" value="803000" required><br>
+		<label for="salt">Salt:</label>
+		<input type="text" id="salt" name="salt" value="0xD1CF" required><br>
+		<button type="submit">Generate Password</button>
+	</form>
+	<div id="output"></div>
 </body>
 </html>
