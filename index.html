@@ -8,7 +8,7 @@
 // This code is modified from some Russian-speaking developers\' code. I did not intend to violate any copyright or licensing rules.
 "use strict";
 function genKeyValStr(mathID, activationKey, licenseType) {
-	return mathID ? `${mathID}$${licenseType}&${activationKey}` : "";
+	return mathID ? `${mathID}${licenseType ? `$${licenseType}` : ""}&${activationKey}` : "";
 }
 function testSalt(n, byte, c) {
 	for (let bitIndex = 0; bitIndex <= 7; bitIndex++) {
@@ -39,7 +39,7 @@ function genPassword(keyValStr, salt, licenseType) {
 	let offset2 = "0000" + salt2;
 	offset2 = offset2.substring(offset2.length - 5);
 	const password = `${ offset2[3] }${ offset1[3] }${ offset1[1] }${ offset1[0] }-${ offset2[4] }${ offset1[2] }${ offset2[0] }-${ offset2[2] }${ offset1[4] }${ offset2[1] }`;
-	return `${password}::${licenseType}`;
+	return `${password}${licenseType ? `::${licenseType}` : ""}`;
 }
 function genPass(event) {
 	event.preventDefault();
@@ -64,7 +64,7 @@ function genPass(event) {
 		<label for="activationkey">Activation Key:</label>
 		<input type="text" id="activationkey" name="activationkey" value="3893-9258-K6XJLE" required><br>
 		<label for="licensetype">License Type:</label>
-		<input type="text" id="licensetype" name="licensetype" value="803000" required><br>
+		<input type="text" id="licensetype" name="licensetype" value="803000"><br>
 		<label for="salt">Salt:</label>
 		<input type="text" id="salt" name="salt" value="0xD1CF" required><br>
 		<button type="submit">Generate Password</button>
